@@ -19,7 +19,7 @@
   let reader: Database;
   let jsonGames: GamePOJO[];
   let selectedGame: number;
-  let element;
+  let nodes;
   let rawGames: string[];
 
   function parseToPgnTimestamp(str: string) {
@@ -47,23 +47,27 @@
   }
 
   $: file ? loadGames() : null;
-  $: console.log(jsonGames ? jsonGames[selectedGame] : null);
-  $: element
-    ? console.log("Element: " + element)
-    : console.log("Lost viewer div");
 
   $: {
-    console.log("Selected game thing triggered");
-    console.log(selectedGame);
     if (selectedGame != null) {
-      console.log("Setting lpv to pgn: " + rawGames[selectedGame]);
-      console.log(document.getElementsByClassName("viewer")[0] as HTMLElement);
-      const element = document.getElementsByClassName(
-        "viewer"
-      )[0] as HTMLElement;
-      LichessPgnViewer(element, {
-        pgn: rawGames[selectedGame],
-      });
+      LichessPgnViewer(
+        document.getElementsByClassName("viewer")[0] as HTMLElement,
+        {
+          pgn: rawGames[selectedGame],
+        }
+      );
+    }
+  }
+
+  $: {
+    if (jsonGames != null && selectedGame != null) {
+      console.log(jsonGames[selectedGame].mainVariation);
+      console.log(typeof jsonGames[selectedGame].mainVariation);
+      if (Array.isArray(jsonGames[selectedGame].mainVariation)) {
+        nodes = jsonGames[selectedGame].mainVariation;
+      } else {
+        nodes = jsonGames[selectedGame].mainVariation.nodes;
+      }
     }
   }
 </script>
@@ -85,9 +89,9 @@
   {/if}
   <div class="content">
     <div class="viewer" />
-    <!-- {#if selectedGame != null}
+    {#if selectedGame != null}
       <div class="timeThing">
-        {#each jsonGames[selectedGame].mainVariation as move}
+        {#each nodes as move}
           <span style="text-align:right">{move.notation}:</span>
           <input
             placeholder={move.notation}
@@ -97,7 +101,7 @@
           />
         {/each}
       </div>
-    {/if} -->
+    {/if}
   </div>
   <button on:click={saveFile}>Save file</button>
 </main>
