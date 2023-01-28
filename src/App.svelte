@@ -1,39 +1,70 @@
 <script lang="ts">
-  async function printToConsole() {
-    console.log(await file[0].text());
-  }
-  let file;
-  let textFile;
-  $: {
-    if (file != null) {
-      printToConsole();
-    }
+  import { parse, type ParseTree } from "@mliebelt/pgn-parser";
+  import { writeGame } from "@mliebelt/pgn-writer";
+  import LichessPgnViewer from "lichess-pgn-viewer";
+  import "./lichess-pgn-viewer.css";
+
+  interface GamesType {
+    rawData: string;
+    parsed: ParseTree;
   }
 
-  async function doTheConsoleLog() {}
+  let file;
+  let games: GamesType[];
+  let selectedGame: GamesType;
+  let lpv;
+
+  async function loadGames() {
+    games = (await file[0].text())
+      .trim()
+      .split("\n\n\n")
+      .map((string) => {
+        console.log(string);
+        return {
+          rawData: string,
+          parsed: parse(string, { startRule: "game" }),
+        };
+      });
+  }
+
+  function handleGameSelected() {}
+
+  $: {
+    if (file != null) {
+      loadGames();
+    }
+  }
+  $: console.log(selectedGame);
+  $: {
+    if (selectedGame != null) {
+      console.log(selectedGame);
+      lpv = LichessPgnViewer(
+        document.getElementsByClassName("viewer")[0] as HTMLElement,
+        {
+          pgn: selectedGame.rawData,
+        }
+      );
+    }
+  }
 </script>
 
 <main>
   Select a pgn file
   <input accept=".pgn" type="file" bind:files={file} />
-  {#if file}
-    <div>File selected</div>
+  {#if games}
+    <div>Games loaded</div>
+    <form on:submit|preventDefault={handleGameSelected}>
+      <select bind:value={selectedGame}>
+        {#each games as game}
+          <option value={game}>
+            {game.parsed.tags.White} vs {game.parsed.tags.Black}
+          </option>
+        {/each}
+      </select>
+    </form>
   {/if}
+  <div class="viewer" />
 </main>
 
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
 </style>
