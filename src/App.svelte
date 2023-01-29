@@ -4,8 +4,10 @@
   import LichessPgnViewer from "lichess-pgn-viewer";
   import "./lichess-pgn-viewer.css";
   import { parsePgn, makePgn, type PgnNodeData, type Game } from "chessops/pgn";
+  import { saveAs } from "file-saver";
+  import * as FileSaver from "file-saver";
 
-  let file;
+  let file: FileList;
   let games: Game<PgnNodeData>[];
   let selectedGame: number = 0;
 
@@ -25,6 +27,7 @@
   async function loadGames() {
     let fileText = await file[0].text();
     games = parsePgn(fileText);
+    console.log(file);
   }
 
   function saveFile() {
@@ -34,6 +37,23 @@
       })
       .join("\n\n");
     console.log(exportGamesPgn);
+    var blob = new Blob([exportGamesPgn], {
+      type: "text/plain;charset=utf-8",
+    });
+    FileSaver.saveAs(blob, "export - " + file[0]["name"]);
+  }
+
+  function addClockComment(move: PgnNodeData, clockEntry: string) {
+    const newClockComment = "[%clk " + parseToPgnTimestamp(clockEntry) + "]";
+    console.log(move);
+    const existingClockCommentIndex = move.comments.findIndex((comment) =>
+      comment.startsWith("[%clk")
+    );
+    if (existingClockCommentIndex != -1) {
+      move.comments[existingClockCommentIndex] = newClockComment;
+    } else {
+      move.comments.unshift(newClockComment);
+    }
   }
 
   $: file ? loadGames() : null;
@@ -75,7 +95,7 @@
           <span style="text-align:right">{move.san}:</span>
           <input
             on:input={(e) => {
-              console.log(parseToPgnTimestamp(e.currentTarget.value));
+              addClockComment(move, e.currentTarget.value);
             }}
           />
         {/each}
