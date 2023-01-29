@@ -10,7 +10,6 @@
   let file: FileList;
   let games: Game<PgnNodeData>[];
   let selectedGame: number = 0;
-  let mainlineMoves;
 
   function parseToPgnTimestamp(str: string) {
     let d = startOfDay(new Date());
@@ -60,12 +59,6 @@
     }
   }
 
-  function clearTimeEntries() {
-    Array.from(document.getElementsByClassName("timeEntry")).map(
-      (element) => (element.value = "")
-    );
-  }
-
   function getClkInMinutes(move: PgnNodeData) {
     const comment = move.comments?.find((comment) =>
       comment.startsWith("[%clk")
@@ -76,9 +69,6 @@
   }
 
   $: file ? loadGames() : null;
-  $: if (games != null) {
-    mainlineMoves = [...games[selectedGame].moves.mainline()];
-  }
 
   $: if (games != null) {
     LichessPgnViewer(
@@ -121,9 +111,6 @@
               class="gameSelector"
               value={i}
               on:click={() => {
-                if (selectedGame != i) {
-                  clearTimeEntries();
-                }
                 selectedGame = i;
               }}
             >
@@ -135,18 +122,20 @@
     </div>
     <div class="viewer" />
     {#if games}
-      <div class="timeDiv">
-        {#each mainlineMoves as move}
-          <span class="timeEntryDescriptor">{move.san}:</span>
-          <input
-            class="timeEntry"
-            on:input={(e) => {
-              addClockComment(move, e.currentTarget.value);
-            }}
-            value={getClkInMinutes(move)}
-          />
-        {/each}
-      </div>
+      {#key selectedGame}
+        <div class="timeDiv">
+          {#each [...games[selectedGame].moves.mainline()] as move}
+            <span class="timeEntryDescriptor">{move.san}:</span>
+            <input
+              class="timeEntry"
+              on:input={(e) => {
+                addClockComment(move, e.currentTarget.value);
+              }}
+              value={getClkInMinutes(move)}
+            />
+          {/each}
+        </div>
+      {/key}
     {/if}
   </div>
 </main>
