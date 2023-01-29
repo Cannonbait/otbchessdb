@@ -135,16 +135,3 @@ main {
 .viewer {
   max-width: 1300px;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #213547;
-    background-color: #242424;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
