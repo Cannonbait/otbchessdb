@@ -142,13 +142,4 @@
 </main>
 
 <style>
-  .timeDiv {
-    display: grid;
-    grid-template-columns: repeat(4, 50px);
-  }
-  .content {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 25px;
-  }
 </style>
