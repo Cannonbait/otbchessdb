@@ -15,6 +15,13 @@
   -webkit-text-size-adjust: 100%;
 }
 
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -41,11 +48,13 @@ h1 {
   padding: 2em;
 }
 
+main {
+  max-height: 100vh;
+  padding: 2rem;
+}
 
 #app {
-  max-width: 1800px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
@@ -102,7 +111,9 @@ h1 {
 
 .timeDiv {
   display: grid;
+  overflow: scroll;
   grid-template-columns: repeat(4, 50px);
+  height: 100%;
 }
 
 .timeEntry {
@@ -116,9 +127,14 @@ h1 {
 
 .content {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: auto auto auto;
   gap: 25px;
   align-items: start;
+  height: 100%;
+}
+
+.viewer {
+  max-width: 1200px;
 }
 
 @media (prefers-color-scheme: light) {
