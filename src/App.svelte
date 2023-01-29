@@ -27,7 +27,6 @@
   async function loadGames() {
     let fileText = await file[0].text();
     games = parsePgn(fileText);
-    console.log(file);
   }
 
   function saveFile() {
@@ -36,7 +35,6 @@
         return makePgn(game);
       })
       .join("\n\n");
-    console.log(exportGamesPgn);
     var blob = new Blob([exportGamesPgn], {
       type: "text/plain;charset=utf-8",
     });
@@ -45,7 +43,6 @@
 
   function addClockComment(move: PgnNodeData, clockEntry: string) {
     const newClockComment = "[%clk " + parseToPgnTimestamp(clockEntry) + "]";
-    console.log(move);
     const existingClockCommentIndex = move.comments.findIndex((comment) =>
       comment.startsWith("[%clk")
     );
@@ -54,6 +51,21 @@
     } else {
       move.comments.unshift(newClockComment);
     }
+  }
+
+  function clearTimeEntries() {
+    Array.from(document.getElementsByClassName("timeEntry")).map(
+      (element) => (element.value = "")
+    );
+  }
+
+  function getClkInMinutes(move: PgnNodeData) {
+    const comment = move.comments.find((comment) =>
+      comment.startsWith("[%clk")
+    );
+    return comment
+      ? Number(comment.charAt(6)) * 60 + Number(comment.substring(8, 10))
+      : "";
   }
 
   $: file ? loadGames() : null;
@@ -71,32 +83,57 @@
 </script>
 
 <main>
-  <input accept=".pgn" type="file" bind:files={file} />
-  {#if games}
-    <button on:click={saveFile}>Save file</button>
-  {/if}
-
   <div class="content">
-    {#if games}
-      <form>
-        <select bind:value={selectedGame}>
+    <div style="width:250px">
+      <div style="display:inline; padding: 5px">
+        <label for="import" class="btn">Import</label>
+        {#if games}
+          <label for="export" class="btn">Export</label>
+        {/if}
+        <input
+          id="import"
+          class="fileButton"
+          accept=".pgn"
+          type="file"
+          bind:files={file}
+        />
+        {#if games}
+          <input
+            id="export"
+            class="fileButton"
+            type="button"
+            on:click={saveFile}
+          />
+        {/if}
+      </div>
+      {#if games}
+        <div style="display:block; margin: 20px 0 0 0">
           {#each games as game, i}
-            <option value={i}>
+            <button
+              class="gameSelector"
+              value={i}
+              on:click={() => {
+                selectedGame = i;
+                clearTimeEntries();
+              }}
+            >
               {game.headers.get("White")} vs {game.headers.get("Black")}
-            </option>
+            </button>
           {/each}
-        </select>
-      </form>
-    {/if}
+        </div>
+      {/if}
+    </div>
     <div class="viewer" />
     {#if games}
-      <div class="timeThing">
+      <div class="timeDiv">
         {#each Array.from(games[selectedGame].moves.mainline()) as move}
-          <span style="text-align:right">{move.san}:</span>
+          <span class="timeEntryDescriptor">{move.san}:</span>
           <input
+            class="timeEntry"
             on:input={(e) => {
               addClockComment(move, e.currentTarget.value);
             }}
+            value={getClkInMinutes(move)}
           />
         {/each}
       </div>
@@ -105,7 +142,7 @@
 </main>
 
 <style>
-  .timeThing {
+  .timeDiv {
     display: grid;
     grid-template-columns: repeat(4, 50px);
   }
