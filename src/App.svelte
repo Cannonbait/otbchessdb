@@ -43,16 +43,19 @@
   }
 
   function addClockComment(move: PgnNodeData, clockEntry: string) {
-    if (clockEntry === "") {
-      return;
-    }
+    move.comments = move.comments || [];
     const newClockComment = "[%clk " + parseToPgnTimestamp(clockEntry) + "]";
     const existingClockCommentIndex = move.comments.findIndex((comment) =>
       comment.startsWith("[%clk")
     );
+
     if (existingClockCommentIndex != -1) {
-      move.comments[existingClockCommentIndex] = newClockComment;
-    } else {
+      if (clockEntry === "") {
+        move.comments.splice(existingClockCommentIndex);
+      } else {
+        move.comments[existingClockCommentIndex] = newClockComment;
+      }
+    } else if (clockEntry !== "") {
       move.comments.unshift(newClockComment);
     }
   }
@@ -112,14 +115,16 @@
         {/if}
       </div>
       {#if games}
-        <div style="display:block; margin: 20px 0 0 0">
+        <div style="margin: 20px 0 0 0">
           {#each games as game, i}
             <button
               class="gameSelector"
               value={i}
               on:click={() => {
+                if (selectedGame != i) {
+                  clearTimeEntries();
+                }
                 selectedGame = i;
-                clearTimeEntries();
               }}
             >
               {game.headers.get("White")} vs {game.headers.get("Black")}
