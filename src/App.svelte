@@ -51,21 +51,23 @@
 </script>
 
 <main>
-  Select a pgn file
   <input accept=".pgn" type="file" bind:files={file} />
   {#if games}
-    <form>
-      <select bind:value={selectedGame}>
-        {#each games as game, i}
-          <option value={i}>
-            {game.headers.get("White")} vs {game.headers.get("Black")}
-          </option>
-        {/each}
-      </select>
-    </form>
+    <button on:click={saveFile}>Save file</button>
   {/if}
 
   <div class="content">
+    {#if games}
+      <form>
+        <select bind:value={selectedGame}>
+          {#each games as game, i}
+            <option value={i}>
+              {game.headers.get("White")} vs {game.headers.get("Black")}
+            </option>
+          {/each}
+        </select>
+      </form>
+    {/if}
     <div class="viewer" />
     {#if games}
       <div class="timeThing">
@@ -80,17 +82,16 @@
       </div>
     {/if}
   </div>
-  <button on:click={saveFile}>Save file</button>
 </main>
 
 <style>
   .timeThing {
     display: grid;
-    grid-template-columns: repeat(4, 100px);
+    grid-template-columns: repeat(4, 50px);
   }
   .content {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr auto 1fr;
     gap: 25px;
   }
 </style>
