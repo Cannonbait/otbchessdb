@@ -1,26 +1,13 @@
 <script lang="ts">
-  import { pgnRead, pgnWrite, Database, Game, type GamePOJO } from "kokopu";
   import { range } from "lodash";
-  import exporter from "@chessclub.com/chesspgn/app/exporter";
-  import Importer from "@chessclub.com/chesspgn/app/importer";
-  import {
-    intervalToDuration,
-    addMinutes,
-    startOfDay,
-    parse as parseDate,
-  } from "date-fns";
+  import { intervalToDuration, addMinutes, startOfDay } from "date-fns";
   import LichessPgnViewer from "lichess-pgn-viewer";
-  import { each } from "svelte/internal";
   import "./lichess-pgn-viewer.css";
-
-  const parse = (pgn: string) => pgnRead(pgn);
+  import { parsePgn, makePgn, type PgnNodeData, type Game } from "chessops/pgn";
 
   let file;
-  let reader: Database;
-  let jsonGames: GamePOJO[];
-  let selectedGame: number;
-  let nodes;
-  let rawGames: string[];
+  let games: Game<PgnNodeData>[];
+  let selectedGame: number = 0;
 
   function parseToPgnTimestamp(str: string) {
     let d = startOfDay(new Date());
@@ -36,38 +23,29 @@
   }
 
   async function loadGames() {
-    let loadedFile = await file[0].text();
-    reader = parse(loadedFile);
-    jsonGames = range(reader.gameCount()).map((i) => reader.game(i).pojo());
-    rawGames = loadedFile.trim().split("\n\n\n");
+    let fileText = await file[0].text();
+    games = parsePgn(fileText);
   }
 
   function saveFile() {
-    console.log(pgnWrite(jsonGames.map((g) => Game.fromPOJO(g))));
+    const exportGamesPgn = games
+      .map((game) => {
+        return makePgn(game);
+      })
+      .join("\n\n");
+    console.log(exportGamesPgn);
   }
 
   $: file ? loadGames() : null;
 
   $: {
-    if (selectedGame != null) {
+    if (games != null) {
       LichessPgnViewer(
         document.getElementsByClassName("viewer")[0] as HTMLElement,
         {
-          pgn: rawGames[selectedGame],
+          pgn: makePgn(games[selectedGame]),
         }
       );
-    }
-  }
-
-  $: {
-    if (jsonGames != null && selectedGame != null) {
-      console.log(jsonGames[selectedGame].mainVariation);
-      console.log(typeof jsonGames[selectedGame].mainVariation);
-      if (Array.isArray(jsonGames[selectedGame].mainVariation)) {
-        nodes = jsonGames[selectedGame].mainVariation;
-      } else {
-        nodes = jsonGames[selectedGame].mainVariation.nodes;
-      }
     }
   }
 </script>
@@ -75,28 +53,27 @@
 <main>
   Select a pgn file
   <input accept=".pgn" type="file" bind:files={file} />
-  {#if reader}
-    <div>Games loaded</div>
+  {#if games}
     <form>
       <select bind:value={selectedGame}>
-        {#each jsonGames as game, i}
+        {#each games as game, i}
           <option value={i}>
-            {game.white.name} vs {game.black.name}
+            {game.headers.get("White")} vs {game.headers.get("Black")}
           </option>
         {/each}
       </select>
     </form>
   {/if}
+
   <div class="content">
     <div class="viewer" />
-    {#if selectedGame != null}
+    {#if games}
       <div class="timeThing">
-        {#each nodes as move}
-          <span style="text-align:right">{move.notation}:</span>
+        {#each Array.from(games[selectedGame].moves.mainline()) as move}
+          <span style="text-align:right">{move.san}:</span>
           <input
-            placeholder={move.notation}
             on:input={(e) => {
-              move.tags.clk = parseToPgnTimestamp(e.currentTarget.value);
+              console.log(parseToPgnTimestamp(e.currentTarget.value));
             }}
           />
         {/each}
