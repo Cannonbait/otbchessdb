@@ -33,7 +33,7 @@ jobs:
         with:
           node-version: 16
       - run: npm ci
-      - run: npm run build -- --outDir _site
+      - run: npm run build -- --outDir _site --base otbchessdb
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
 
