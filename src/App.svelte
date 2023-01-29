@@ -109,6 +109,7 @@
           {#each games as game, i}
             <button
               class="gameSelector"
+              class:currentGameSelected={selectedGame == i}
               value={i}
               on:click={() => {
                 selectedGame = i;

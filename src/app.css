@@ -96,6 +96,10 @@ h1 {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.currentGameSelected {
+  border-color: #f3f043;
+}
+
 .timeEntry {
   margin:5px;
 }
