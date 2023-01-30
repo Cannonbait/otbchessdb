@@ -111,12 +111,17 @@ main {
 
 .timeDiv {
   display: grid;
-  grid-template-columns: repeat(4, 50px);
+  grid-template-columns: repeat(5, 50px);
   height: 100%;
 }
 
 .timeEntry {
   margin:5px;
+}
+
+.timeEntryNumber {
+  text-align:right;
+  margin: auto 0;
 }
 
 .timeEntryDescriptor {

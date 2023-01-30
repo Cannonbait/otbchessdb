@@ -125,7 +125,10 @@
     {#if games}
       {#key selectedGame}
         <div class="timeDiv">
-          {#each [...games[selectedGame].moves.mainline()] as move}
+          {#each [...games[selectedGame].moves.mainline()] as move, i}
+            {#if i % 2 == 0}
+              <span class="timeEntryNumber">{i === 0 ? 1 : i / 2 + 1}</span>
+            {/if}
             <span class="timeEntryDescriptor">{move.san}:</span>
             <input
               class="timeEntry"
